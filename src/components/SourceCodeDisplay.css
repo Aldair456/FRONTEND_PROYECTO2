@@ -1,0 +1,47 @@
+.code-container {
+  background-color: #fff;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  padding: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.code-line {
+  display: flex;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.code-line:last-child {
+  border-bottom: none;
+}
+
+.code-line-active {
+  background-color: #e3f2fd;
+  border-radius: 4px;
+}
+
+.line-number {
+  font-size: 14px;
+  color: #666;
+  margin-right: 12px;
+  min-width: 40px;
+  font-family: 'Courier New', monospace;
+}
+
+.code-text {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  font-family: 'Courier New', monospace;
+}
+
+.active-indicator {
+  font-size: 12px;
+  color: #007AFF;
+  font-weight: bold;
+  margin-left: 8px;
+}
+

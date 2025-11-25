@@ -1,0 +1,124 @@
+.objects-visualizer {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  height: 100%;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.objects-visualizer-header {
+  background-color: #f5f5f5;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.objects-visualizer-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.objects-visualizer-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+  max-height: calc(600px - 60px);
+  min-height: 200px;
+}
+
+/* Scrollbar personalizada */
+.objects-visualizer-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.objects-visualizer-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.objects-visualizer-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.objects-visualizer-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.object-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  padding: 10px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.object-register {
+  border-left: 4px solid #4caf50;
+}
+
+.object-stack {
+  border-left: 4px solid #2196f3;
+}
+
+.object-default {
+  border-left: 4px solid #999;
+  opacity: 0.6;
+}
+
+.object-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #eee;
+}
+
+.object-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #666;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.object-address {
+  font-size: 12px;
+  color: #666;
+  font-family: 'Courier New', monospace;
+}
+
+.object-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.object-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 13px;
+}
+
+.object-value {
+  color: #2196f3;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.object-hex {
+  color: #999;
+  font-size: 11px;
+}
+
