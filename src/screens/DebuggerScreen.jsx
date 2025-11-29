@@ -7,7 +7,7 @@ import Button from '../components/Button';
 import Spinner from '../components/Spinner';
 import './DebuggerScreen.css';
 
-const COMPILE_ENDPOINT = 'https://6wtbgq837j.execute-api.us-east-1.amazonaws.com/dev/compile';
+const COMPILE_ENDPOINT = 'https://85lk2hj6t9.execute-api.us-east-1.amazonaws.com/dev/compile';
 
 export default function DebuggerScreen() {
   const [sourceCode, setSourceCode] = useState(`int main() {
@@ -120,17 +120,64 @@ export default function DebuggerScreen() {
     };
   };
 
-  // Convertir stack del API al formato del componente
+  // Convertir callStack del API al formato del componente para ObjectsVisualizer
   const getStack = () => {
-    if (!currentStepData?.stack || currentStepData.stack.length === 0) {
+    if (!currentStepData?.callStack || currentStepData.callStack.length === 0) {
       return [];
     }
 
-    return currentStepData.stack.map((item, index) => ({
-      address: item.address,
-      name: item.name || `stack[${index}]`,
-      value: item.value,
-      isActive: true,
+    // Convertir callStack a formato de stack items
+    const stackItems = [];
+    currentStepData.callStack.forEach((frame) => {
+      if (frame.variables) {
+        Object.entries(frame.variables).forEach(([varName, varData]) => {
+          const displayValue = varData.value !== undefined 
+            ? varData.value 
+            : (varData.hex || '?');
+          
+          stackItems.push({
+            address: varData.address || frame.rbp || '0x0',
+            name: varName,
+            value: displayValue,
+            type: varData.type,
+            hex: varData.hex,
+            isActive: frame.isActive || false,
+          });
+        });
+      }
+    });
+
+    return stackItems;
+  };
+
+  // Obtener callStack para FramesVisualizer
+  const getCallStack = () => {
+    if (!currentStepData?.callStack || currentStepData.callStack.length === 0) {
+      return [];
+    }
+
+    return currentStepData.callStack.map((frame) => ({
+      name: frame.function || 'unknown',
+      rbp: frame.rbp || '0x0',
+      rbpDecimal: frame.rbpDecimal,
+      variables: frame.variables ? Object.fromEntries(
+        Object.entries(frame.variables).map(([key, varData]) => {
+          // Mostrar el valor, pero mantener la información completa
+          const displayValue = varData.value !== undefined 
+            ? varData.value 
+            : (varData.hex || '?');
+          return [key, {
+            value: displayValue,
+            hex: varData.hex,
+            type: varData.type,
+            address: varData.address,
+            offset: varData.offset,
+            initialized: varData.initialized
+          }];
+        })
+      ) : {},
+      isActive: frame.isActive || false,
+      address: frame.rbp || '0x0',
     }));
   };
 
@@ -243,7 +290,7 @@ export default function DebuggerScreen() {
             {/* Columna 2: Frames */}
             <div className="visualization-column">
               <FramesVisualizer
-                stack={getStack()}
+                stack={getCallStack()}
                 currentFrame={0}
               />
             </div>

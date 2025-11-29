@@ -5,15 +5,27 @@ export default function FramesVisualizer({
   stack = [],
   currentFrame = 0
 }) {
-  // Crear frames basados en el stack
+  // Crear frames basados en el stack/callStack
   const frames = stack.length > 0 
-    ? stack.map((item, index) => ({
-        name: `Frame ${index}`,
-        variables: {
-          [item.name || `var${index}`]: item.value
-        },
-        address: item.address
-      }))
+    ? stack.map((item, index) => {
+        // Si ya tiene la estructura de callStack (con name y variables)
+        if (item.name && item.variables) {
+          return {
+            name: item.name,
+            variables: item.variables,
+            address: item.address || item.rbp,
+            isActive: item.isActive
+          };
+        }
+        // Formato antiguo (stack items)
+        return {
+          name: `Frame ${index}`,
+          variables: {
+            [item.name || `var${index}`]: item.value
+          },
+          address: item.address
+        };
+      })
     : [
         {
           name: 'Global frame',
@@ -50,12 +62,23 @@ export default function FramesVisualizer({
               )}
             </div>
             <div className="frame-variables">
-              {Object.entries(frame.variables).map(([key, value]) => (
-                <div key={key} className="frame-variable">
-                  <span className="variable-name">{key}:</span>
-                  <span className="variable-value">{String(value)}</span>
-                </div>
-              ))}
+              {Object.entries(frame.variables).map(([key, value]) => {
+                // Si value es un objeto con información completa de la variable
+                const varInfo = typeof value === 'object' && value !== null && ('value' in value || 'hex' in value)
+                  ? value
+                  : { value: value };
+                
+                const displayValue = varInfo.value !== undefined ? varInfo.value : (varInfo.hex || value);
+                const varType = varInfo.type ? ` (${varInfo.type})` : '';
+                const varAddress = varInfo.address ? ` @ ${varInfo.address}` : '';
+                
+                return (
+                  <div key={key} className="frame-variable">
+                    <span className="variable-name">{key}{varType}:</span>
+                    <span className="variable-value">{String(displayValue)}{varAddress}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
