@@ -241,6 +241,9 @@ export default function DebugVisualizer() {
   // Obtener c_line y asm_line del paso actual
   const currentCLine = currentApiStep?.c_line || 0
   const currentAsmLine = currentApiStep?.asm_line || 0
+  
+  // Obtener stackFrame del paso actual
+  const stackFrame = currentApiStep?.stackFrame || null
 
   // Convertir registros del API al formato del componente
   const getRegisters = () => {
@@ -752,6 +755,147 @@ export default function DebugVisualizer() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stack Frame Visualization - Diseño tipo pila */}
+      {!isEditing && steps.length > 0 && stackFrame && (
+        <div className="w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-lg overflow-hidden font-mono text-sm mb-6">
+          {/* Header */}
+          <div className="bg-zinc-800 px-3 py-2 border-b border-zinc-700 flex items-center justify-between">
+            <span className="text-zinc-300 text-xs font-semibold">Stack Frame</span>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-zinc-400">Paso {step + 1}/{steps.length}</span>
+            </div>
+          </div>
+
+          {/* Código actual */}
+          <div className="bg-zinc-800/50 px-3 py-2 border-b border-zinc-700">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-emerald-400">C:</span>
+              <code className="text-zinc-300">{currentApiStep?.c_code || "(inicio)"}</code>
+            </div>
+            <div className="flex items-center gap-2 text-xs mt-1">
+              <span className="text-amber-400">ASM:</span>
+              <code className="text-zinc-300">{currentApiStep?.asm_instruction || "INIT"}</code>
+            </div>
+          </div>
+
+          {/* Stack visual */}
+          <div className="p-3">
+            <p className="text-zinc-500 text-xs mb-2">Alta dirección de memoria ↑</p>
+            <div className="border border-zinc-600 rounded overflow-hidden">
+              {/* Return address */}
+              {stackFrame.base_pointer && stackFrame.base_pointer !== "0x0" && (
+                <div className="flex border-b border-zinc-700">
+                  <div className="w-28 px-2 py-1.5 bg-zinc-800 text-zinc-400 text-xs border-r border-zinc-700">
+                    Return addr
+                  </div>
+                  <div className="flex-1 px-2 py-1.5 text-zinc-500 text-xs">← guardado por call</div>
+                </div>
+              )}
+
+              {/* Old %rbp */}
+              {stackFrame.base_pointer && stackFrame.base_pointer !== "0x0" && (
+                <div className="flex border-b border-zinc-700">
+                  <div className="w-28 px-2 py-1.5 bg-zinc-800 text-zinc-400 text-xs border-r border-zinc-700">
+                    Old %rbp
+                  </div>
+                  <div className="flex-1 px-2 py-1.5 text-zinc-500 text-xs">← pushq %rbp</div>
+                </div>
+              )}
+
+              {/* Variables locales dinámicas */}
+              {(!stackFrame.local_variables || stackFrame.local_variables.length === 0) ? (
+                <div className="flex border-b border-zinc-700 last:border-b-0">
+                  <div className="w-28 px-2 py-1.5 bg-zinc-800/50 text-zinc-500 text-xs border-r border-zinc-700 italic">
+                    -4(%rbp)
+                  </div>
+                  <div className="flex-1 px-2 py-1.5 text-zinc-600 text-xs italic">← (vacío)</div>
+                </div>
+              ) : (
+                stackFrame.local_variables
+                  .sort((a: any, b: any) => {
+                    const offsetA = parseInt(a.offset.match(/-?\d+/)?.[0] || "0")
+                    const offsetB = parseInt(b.offset.match(/-?\d+/)?.[0] || "0")
+                    return offsetA - offsetB
+                  })
+                  .map((v: any, i: number) => {
+                    const isRbp = v.address === stackFrame.base_pointer
+                    const isRsp = v.address === stackFrame.stack_pointer
+                    return (
+                      <div 
+                        key={i} 
+                        className={`flex border-b border-zinc-700 last:border-b-0 transition-all duration-200 ${
+                          isRbp || isRsp ? 'bg-zinc-800/30' : ''
+                        }`}
+                      >
+                        <div className="w-28 px-2 py-1.5 bg-zinc-800 border-r border-zinc-700 flex items-center gap-1">
+                          <span className="text-zinc-400 text-xs">{v.offset}</span>
+                          <span className="text-cyan-400 text-xs">→</span>
+                          <span className="text-emerald-400 text-xs font-bold">{v.value}</span>
+                        </div>
+                        <div className="flex-1 px-2 py-1.5 text-zinc-400 text-xs flex items-center justify-between">
+                          <span>← Variable {v.name}</span>
+                          {(isRbp || isRsp) && (
+                            <span className={`text-xs font-bold ${isRbp ? 'text-purple-400' : 'text-orange-400'}`}>
+                              {isRbp ? '← %rbp' : '← %rsp'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })
+              )}
+
+              {/* Temporary Stack (solo si no está vacío) */}
+              {stackFrame.temporary_stack && stackFrame.temporary_stack.length > 0 && (
+                <>
+                  <div className="border-t-2 border-dashed border-yellow-500/50 my-1"></div>
+                  {stackFrame.temporary_stack.map((temp: any, idx: number) => {
+                    const isRsp = temp.address === stackFrame.stack_pointer
+                    return (
+                      <div 
+                        key={idx}
+                        className={`flex border-b border-zinc-700 last:border-b-0 ${
+                          isRsp ? 'bg-yellow-900/20' : ''
+                        }`}
+                      >
+                        <div className="w-28 px-2 py-1.5 bg-yellow-900/30 border-r border-zinc-700 text-yellow-400 text-xs">
+                          Temp
+                        </div>
+                        <div className="flex-1 px-2 py-1.5 text-yellow-400 text-xs flex items-center justify-between">
+                          <span>← pushq (valor: {temp.value !== undefined ? temp.value : temp})</span>
+                          {isRsp && (
+                            <span className="text-orange-400 text-xs font-bold">← %rsp</span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
+              )}
+
+              {/* RSP marker */}
+              <div className="flex bg-amber-900/20">
+                <div className="w-28 px-2 py-1.5 bg-zinc-800 text-amber-400 text-xs border-r border-zinc-700">%rsp</div>
+                <div className="flex-1 px-2 py-1.5 text-amber-500/80 text-xs">← Tope del stack</div>
+              </div>
+            </div>
+            <p className="text-zinc-500 text-xs mt-2">Baja dirección de memoria ↓</p>
+          </div>
+
+          {/* Variables */}
+          <div className="px-3 pb-3">
+            <div className="flex gap-2 flex-wrap">
+              {currentApiStep?.variables && Object.entries(currentApiStep.variables).map(([name, v]: [string, any]) => (
+                <div key={name} className="bg-zinc-800 rounded px-2 py-1 text-xs flex items-center gap-1">
+                  <span className="text-zinc-500">{name}:</span>
+                  <span className={v.value !== 0 ? "text-emerald-400 font-bold" : "text-zinc-500"}>{v.value}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
