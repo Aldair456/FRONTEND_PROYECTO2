@@ -701,7 +701,7 @@ export default function DebugVisualizer() {
             </div>
           </div>
 
-          {/* Panel Estado: Registros, Stack, Variables */}
+          {/* Panel Estado: Registros, Variables */}
           <div className="bg-white rounded-xl border-2 border-green-500 shadow-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
@@ -727,26 +727,6 @@ export default function DebugVisualizer() {
                       <div className="text-xs text-gray-600">{reg.decimal}</div>
                     </div>
                   ))}
-                </div>
-              </div>
-
-              {/* Stack */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Stack</h4>
-                <div className="space-y-1">
-                  {stackAddresses.length > 0 ? (
-                    stackAddresses.map((addr) => (
-                      <div
-                        key={addr.id}
-                        className="bg-purple-50 rounded p-2 border border-purple-200 text-xs"
-                      >
-                        <div className="font-mono text-gray-700">{addr.address}</div>
-                        <div className="text-gray-600">{addr.varName}: {addr.value}</div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-xs text-center py-2">No hay datos en el stack</p>
-                  )}
                 </div>
               </div>
 
